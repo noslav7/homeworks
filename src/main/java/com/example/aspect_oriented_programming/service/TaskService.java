@@ -23,6 +23,9 @@ public class TaskService {
     }
 
     public Optional<Task> getTaskById(Long id) {
+        if (id < 0) {
+            throw new IllegalArgumentException("ID не может быть отрицательным.");
+        }
         return taskRepository.findById(id);
     }
 

@@ -3,56 +3,48 @@ package com.example.aspect_oriented_programming.aspect;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-import java.util.logging.Logger;
 
 @Aspect
 @Component
 public class LoggingAspect {
-    private final Logger logger = Logger.getLogger(LoggingAspect.class.getName());
+    private final Logger logger = LoggerFactory.getLogger(LoggingAspect.class);
 
     @Pointcut("execution(* com.example.aspect_oriented_programming.service.TaskService.*(..))")
-    public void serviceMethods() {
-    }
+    public void serviceMethods() {}
 
     @Before("serviceMethods()")
     public void logBeforeMethod(JoinPoint joinPoint) {
-        logger.info("Before advice: Начало выполнения метода " + joinPoint.getSignature().getName());
+        logger.info("Before advice: начало выполнения метода {}", joinPoint.getSignature().getName());
     }
 
     @AfterThrowing(pointcut = "serviceMethods()", throwing = "exception")
     public void logAfterThrowing(JoinPoint joinPoint, Throwable exception) {
-        logger.severe("AfterThrowing advice: Исключение в методе " + joinPoint.getSignature().getName()
-                + " с сообщением: " + exception.getMessage());
+        logger.error("AfterThrowing advice: исключение в методе {}: {}", joinPoint.getSignature().getName(), exception.getMessage());
     }
 
     @AfterReturning(pointcut = "serviceMethods()", returning = "result")
     public void logAfterReturningResult(JoinPoint joinPoint, Object result) {
-        logger.info("AfterReturning advice: Метод " + joinPoint.getSignature().getName()
-                + " вернул результат: " + result);
+        logger.info("AfterReturning advice: метод {} вернул результат: {}", joinPoint.getSignature().getName(), result);
     }
 
     @Around("serviceMethods()")
     public Object logExecutionTime(ProceedingJoinPoint joinPoint) {
         long startTime = System.currentTimeMillis();
-        logger.info("Around advice: Метод " + joinPoint.getSignature().getName() + " начинается...");
+        logger.info("Around advice: метод {} начинается...", joinPoint.getSignature().getName());
         Object result;
 
         try {
             result = joinPoint.proceed();
         } catch (Throwable exception) {
-            logger.severe("Around advice:  Метод " + joinPoint.getSignature().getName()
-                    + " выбросил исключение: " + exception.getMessage());
-
-            return Optional.empty();
+            logger.error("Метод {} выбросил исключение: {}", joinPoint.getSignature().getName(), exception.getMessage());
+            throw new RuntimeException(exception);
         }
 
         long elapsedTime = System.currentTimeMillis() - startTime;
-        logger.info("Around advice: Метод " + joinPoint.getSignature().getName()
-                + " завершился за " + elapsedTime + " мс.");
+        logger.info("Метод {} завершился за {} мс.", joinPoint.getSignature().getName(), elapsedTime);
         return result;
     }
-
 }
