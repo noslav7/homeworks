@@ -1,14 +1,10 @@
-package com.example.aspect_oriented_programming.entity;
+package com.example.aspect_oriented_programming.dto;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-@Entity
-@Table(name = "tasks")
-public class Task {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class TaskDTO {
+
     private Long id;
 
     @NotBlank(message = "Название задачи не может быть пустым")
@@ -51,3 +47,4 @@ public class Task {
         this.userId = userId;
     }
 }
+

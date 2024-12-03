@@ -2,18 +2,15 @@ package com.example.aspect_oriented_programming.service;
 
 import com.example.aspect_oriented_programming.entity.Task;
 import com.example.aspect_oriented_programming.repository.TaskRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TaskService {
 
     private final TaskRepository taskRepository;
 
-    @Autowired
     public TaskService(TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
     }
@@ -22,11 +19,11 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    public Optional<Task> getTaskById(Long id) {
+    public Task getTaskById(Long id) {
         if (id < 0) {
             throw new IllegalArgumentException("ID не может быть отрицательным.");
         }
-        return taskRepository.findById(id);
+        return taskRepository.findById(id).orElseThrow();
     }
 
     public List<Task> getAllTasks() {
