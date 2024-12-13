@@ -1,5 +1,6 @@
 package com.example.aspect_oriented_programming.service;
 
+import com.example.aspect_oriented_programming.dto.KafkaMessageDTO;
 import com.example.aspect_oriented_programming.entity.Task;
 import com.example.aspect_oriented_programming.kafka.KafkaProducerService;
 import com.example.aspect_oriented_programming.repository.TaskRepository;
@@ -21,7 +22,10 @@ public class TaskService {
 
     public Task createTask(Task task) {
         Task createdTask = taskRepository.save(task);
-        kafkaProducerService.sendMessage(TOPIC_NAME, "Создана задача: " +  createdTask);
+        KafkaMessageDTO messageDTO = new KafkaMessageDTO();
+        messageDTO.setTitle("Создана задача");
+        messageDTO.setContent("Задача создана: " + createdTask);
+        kafkaProducerService.sendMessage(TOPIC_NAME, messageDTO);
         return createdTask;
     }
 
@@ -31,13 +35,19 @@ public class TaskService {
         }
         Task task = taskRepository.findById(id).orElseThrow(
                 () -> new NoSuchElementException("Задача с ID " + id + " не найдена"));
-        kafkaProducerService.sendMessage(TOPIC_NAME, "Получена задача: " + task);
+        KafkaMessageDTO messageDTO = new KafkaMessageDTO();
+        messageDTO.setTitle("Получена задача");
+        messageDTO.setContent("Задача получена: " + task);
+        kafkaProducerService.sendMessage(TOPIC_NAME, messageDTO);
         return task;
     }
 
     public List<Task> getAllTasks() {
         List<Task> tasks = taskRepository.findAll();
-        kafkaProducerService.sendMessage(TOPIC_NAME, "Получен список всех задач, количество: " + tasks.size());
+        KafkaMessageDTO messageDTO = new KafkaMessageDTO();
+        messageDTO.setTitle("Получен список задач");
+        messageDTO.setContent("Количество задач: " + tasks.size());
+        kafkaProducerService.sendMessage(TOPIC_NAME, messageDTO);
         return tasks;
     }
 
@@ -47,11 +57,17 @@ public class TaskService {
             task.setDescription(updatedTask.getDescription());
             task.setUserId(updatedTask.getUserId());
             Task savedTask = taskRepository.save(task);
-            kafkaProducerService.sendMessage(TOPIC_NAME, "Обновлена задача: " + savedTask);
+            KafkaMessageDTO messageDTO = new KafkaMessageDTO();
+            messageDTO.setTitle("Обновлена задача");
+            messageDTO.setContent("Задача обновлена: " + savedTask);
+            kafkaProducerService.sendMessage(TOPIC_NAME, messageDTO);
             return savedTask;
         }).orElseThrow(() -> {
             String errorMessage = "Task not found with id: " + id;
-            kafkaProducerService.sendMessage(TOPIC_NAME, errorMessage);
+            KafkaMessageDTO messageDTO = new KafkaMessageDTO();
+            messageDTO.setTitle("Ошибка обновления задачи");
+            messageDTO.setContent(errorMessage);
+            kafkaProducerService.sendMessage(TOPIC_NAME, messageDTO);
             return new RuntimeException(errorMessage);
         });
     }
@@ -59,11 +75,16 @@ public class TaskService {
     public void deleteTask(Long id) {
         if (!taskRepository.existsById(id)) {
             String errorMessage = "Task not found with id: " + id;
-            kafkaProducerService.sendMessage(TOPIC_NAME, errorMessage);
+            KafkaMessageDTO messageDTO = new KafkaMessageDTO();
+            messageDTO.setTitle("Ошибка удаления задачи");
+            messageDTO.setContent(errorMessage);
+            kafkaProducerService.sendMessage(TOPIC_NAME, messageDTO);
             throw new RuntimeException(errorMessage);
         }
         taskRepository.deleteById(id);
-        kafkaProducerService.sendMessage(TOPIC_NAME, "Удалена задача с id: " + id);
+        KafkaMessageDTO messageDTO = new KafkaMessageDTO();
+        messageDTO.setTitle("Удалена задача");
+        messageDTO.setContent("Задача с id " + id + " удалена");
+        kafkaProducerService.sendMessage(TOPIC_NAME, messageDTO);
     }
 }
-
