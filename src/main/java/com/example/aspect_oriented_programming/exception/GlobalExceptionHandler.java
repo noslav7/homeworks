@@ -1,6 +1,5 @@
 package com.example.aspect_oriented_programming.exception;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -9,7 +8,6 @@ import org.springframework.kafka.KafkaException;
 import org.springframework.mail.MailException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -33,23 +31,30 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<String> handleConstraintViolation(ConstraintViolationException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        StringBuilder sb = new StringBuilder("Валидационная ошибка: ");
+        ex.getConstraintViolations().forEach(cv ->
+                sb.append("[")
+                        .append(cv.getPropertyPath())
+                        .append(" ")
+                        .append(cv.getMessage())
+                        .append("]; ")
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(sb.toString());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body("Нарушение целостности данных: "
-                + ex.getRootCause().getMessage());
+        String rootCauseMessage = (ex.getRootCause() != null)
+                ? ex.getRootCause().getMessage()
+                : ex.getMessage();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body("Нарушение целостности данных: " + rootCauseMessage);
     }
 
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<String> handleNoSuchElementException(NoSuchElementException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(JsonProcessingException.class)
-    public ResponseEntity<String> handleJsonProcessingException(JsonProcessingException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ошибка обработки JSON: " + ex.getOriginalMessage());
     }
 
     @ExceptionHandler(KafkaException.class)
@@ -65,12 +70,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
     public ResponseEntity<String> handleHttpMessageNotReadableException(org.springframework.http.converter.HttpMessageNotReadableException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Некорректный формат запроса: " + ex.getMessage());
-    }
-
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<String> handleMissingParams(MissingServletRequestParameterException ex) {
-        String name = ex.getParameterName();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Отсутствует обязательный параметр: " + name);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
