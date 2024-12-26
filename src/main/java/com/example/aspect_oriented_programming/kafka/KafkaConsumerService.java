@@ -24,7 +24,7 @@ public class KafkaConsumerService {
     }
 
     @KafkaListener(topics = "test-topic", groupId = "task-service", containerFactory = "kafkaBatchListenerContainerFactory")
-    private void listen(List<ConsumerRecord<String, String>> records, Acknowledgment acknowledgment) {
+    void listen(List<ConsumerRecord<String, String>> records, Acknowledgment acknowledgment) {
         logger.info("Получено {} сообщений", records.size());
 
         try {
