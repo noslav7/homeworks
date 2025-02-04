@@ -1,4 +1,4 @@
-The repository contains homeworks' project.
+The repository contains the Open school homeworks' project.
 Topics covered:
 1. Aspect-oriented programming (AOP)
 2. Kafka
